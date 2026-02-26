@@ -1,3 +1,7 @@
+# Extensions in BApp Store for automation scanning (Required Burp Suite Professional)
+
+- Comming Soon
+
 # Bambda for HTTP History filter
 
 ## How can use:
@@ -7,6 +11,10 @@
 Sample:
 
 <img width="948" height="419" alt="image" src="https://github.com/user-attachments/assets/d19ab424-78f4-4829-bb39-dd313c421e0e" />
+
+---
+
+- Script Mode 1 not using feature `show in scopes` not filter `MIME type`:
 
 ```bambda
 String url = requestResponse.url().toLowerCase();
@@ -79,6 +87,62 @@ if (urlWithoutParams.endsWith(".woff") ||
 }
 
 return true;
+```
+
+---
+
+- Script Mode 2 using `show in scopes` and have filter `MIME type`:
+
+```bambda
+String path = requestResponse.request().path();
+String method = requestResponse.request().method();
+
+// Exclude methods
+String[] excludeMethods = {"OPTIONS", "HEAD"};
+boolean isMethodExcluded = false;
+for (String excludeMethod : excludeMethods) {
+    if (method.equals(excludeMethod)) {
+        isMethodExcluded = true;
+        break;
+    }
+}
+
+// Exclude paths
+String[] excludePaths = {
+    "/shell/navigation/trackEvent",
+    "/api/analytics",
+    "/shell/navigation/tracking/track",
+    "/authentication-proxy/proxy/otel/v1/traces",
+    "/portal/api/tracking",
+    "/tracking"
+};
+boolean isPathExcluded = false;
+for (String excludePath : excludePaths) {
+    if (path.contains(excludePath)) {
+        isPathExcluded = true;
+        break;
+    }
+}
+
+// Exclude file extensions (CUSTOM HERE)
+String[] excludeExtensions = {
+    ".js", ".css", ".jpg", ".jpeg", ".png", ".gif", 
+    ".svg", ".ico", ".woff", ".woff2", ".ttf", ".eot",
+    ".map", ".webp", ".mp4", ".mp3", ".pdf", ".zip"
+};
+boolean isExtensionExcluded = false;
+String lowerPath = path.toLowerCase();
+for (String extension : excludeExtensions) {
+    if (lowerPath.endsWith(extension)) {
+        isExtensionExcluded = true;
+        break;
+    }
+}
+
+return requestResponse.request().isInScope() &&
+       !isMethodExcluded &&
+       !isPathExcluded &&
+       !isExtensionExcluded;
 ```
 
 ---
